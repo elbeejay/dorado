@@ -1,14 +1,16 @@
-"""Example of the workflow with gridded anuga output data"""
+"""Example of the workflow with gridded anuga output data."""
 
 import numpy as np
+import os.path
 import dorado.particle_track as pt
-from dorado.particle_track import params
 from dorado.routines import get_state
 from dorado.routines import plot_state
 import matplotlib.pyplot as plt
 
-# load some variables from a deltarcm output so stage is varied
-data = np.load('ex_anuga_data.npz')
+# load some variables from an anuga output so stage is varied
+f_path = os.path.abspath(os.path.dirname(__file__))
+data_path = os.path.join(f_path, 'ex_anuga_data.npz')
+data = np.load(data_path)
 
 # pull depth and stage from that data
 depth = data['depth']
@@ -16,26 +18,29 @@ qx = data['qx']
 qy = data['qy']
 
 # create params and then assign the parameters
-params = params()
+params = pt.modelParams()
 
 # define the params variables
 params.depth = depth
-params.stage = depth  # using depth as standin for stage parameter
+params.stage = np.copy(depth)  # using depth as standin for stage parameter
 params.qx = qx
 params.qy = qy
-
-params.seed_xloc = list(range(20, 30))
-params.seed_yloc = list(range(48, 53))
-params.Np_tracer = 50
 # smaller cell size than the other examples to tighten the range of
 # travel time values that are obtained (aka increase travel time resolution)
 params.dx = 10.
 params.theta = 1.0
 params.model = 'Anuga'
 
+# particle info
+seed_xloc = list(range(20, 30))
+seed_yloc = list(range(48, 53))
+Np_tracer = 50
+
 # Apply the parameters to run the model
-particle = pt.Particle(params)
+particle = pt.Particles(params)
 np.random.seed(0)
+# generate particles
+particle.generate_particles(Np_tracer, seed_xloc, seed_yloc)
 # run model until all particles have travelled for about 1.5 hours
 walk_data = particle.run_iteration(target_time=2100)
 _, _, finaltimes = get_state(walk_data, iteration=-1)
