@@ -92,8 +92,7 @@ def steady_plots(particle, num_iter,
                 newloc = ax.scatter(yi, xi, c='r', s=0.75)
             else:
                 # Update figure with new locations
-                newloc.remove()
-                newloc = ax.scatter(yi, xi, c='r', s=0.75)
+                newloc.set_offsets(np.array([yi,xi]).T)
             ax.set_title('Depth - Particle Iteration ' + str(i))
             plt.savefig(folder_name+os.sep +
                         'figs'+os.sep+'output'+str(i).zfill(4)+'.png',
@@ -331,6 +330,7 @@ def time_plots(particle, num_iter, folder_name=None):
         walk_data = particle.run_iteration()
 
         # collect latest travel times
+        x0, y0, t0 = get_state(walk_data, 0)
         xi, yi, temptimes = get_state(walk_data)
 
         # set colorbar using 10th and 90th percentile values
@@ -369,6 +369,7 @@ def time_plots(particle, num_iter, folder_name=None):
         plt.savefig(folder_name+os.sep+'figs'+os.sep+'output' +
                     str(i).zfill(4)+'.png',
                     bbox_inches='tight')
+        plt.close()
 
     # save data as a json text file - technically human readable
     fpath = folder_name+os.sep+'data'+os.sep+'data.txt'
