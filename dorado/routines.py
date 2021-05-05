@@ -88,7 +88,7 @@ def steady_plots(particle, num_iter,
                                     ax.get_position().height])
                 cbar = plt.colorbar(im, cax=cax)
                 cbar.set_label('Water Depth [m]')
-                orig = ax.scatter(y0, x0, c='b', s=0.75)
+                ax.scatter(y0, x0, c='b', s=0.75)
                 newloc = ax.scatter(yi, xi, c='r', s=0.75)
             else:
                 # Update figure with new locations
@@ -254,18 +254,26 @@ def unsteady_plots(dx, Np_tracer, seed_xloc, seed_yloc, num_steps, timestep,
                                 ax.get_position().y0,
                                 0.02,
                                 ax.get_position().height])
-            cbar = plt.colorbar(im, cax=cax)
+            _vals = np.linspace(params.depth.min(), params.depth.max())
+            _ticks = np.round(_vals[::10], 2)  # label every 10 value
+            cbar = plt.colorbar(im, cax=cax, values=_vals, ticks=_ticks)
             cbar.set_label('Water Depth [m]')
-            orig = ax.scatter(y0, x0, c='b', s=0.75)
+            ax.scatter(y0, x0, c='b', s=0.75)
             newloc = ax.scatter(yi, xi, c='r', s=0.75)
         else:
             # Update figure with new locations
             im.set_data(params.depth)
             newloc.remove()
             newloc = ax.scatter(yi, xi, c='r', s=0.75)
-            # cbar.remove()
-            # cbar = plt.colorbar(im, cax=cax)
-            # cbar.set_label('Water Depth [m]')
+            cax.remove()
+            cax = fig.add_axes([ax.get_position().x1+0.01,
+                                ax.get_position().y0,
+                                0.02,
+                                ax.get_position().height])
+            _vals = np.linspace(params.depth.min(), params.depth.max())
+            _ticks = np.round(_vals[::10], 2)  # label every 10 value
+            cbar = plt.colorbar(im, cax=cax, values=_vals, ticks=_ticks)
+            cbar.set_label('Water Depth [m]')
             plt.draw()
         ax.set_title('Depth at Time ' + str(target_times[i]))
         plt.savefig(folder_name+os.sep+'figs'+os.sep+'output'+str(i)+'.png',
@@ -335,11 +343,12 @@ def time_plots(particle, num_iter, folder_name=None):
         if i == 0:
             x0, y0, t0 = get_state(walk_data, 0)
             # Initialize figure
-            fig = plt.figure(dpi=200)
+            plt.figure(dpi=200)
             ax = plt.gca()
             im = ax.imshow(particle.depth)
-            orig = ax.scatter(y0, x0, c='b', s=0.75)
-            sc = ax.scatter(yi, xi, c=temptimes, s=0.75, cmap='coolwarm', norm=cm)
+            ax.scatter(y0, x0, c='b', s=0.75)
+            sc = ax.scatter(yi, xi, c=temptimes, s=0.75, cmap='coolwarm',
+                            norm=cm)
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             cbar = plt.colorbar(sc, cax=cax)
@@ -351,7 +360,8 @@ def time_plots(particle, num_iter, folder_name=None):
         else:
             # Update figure with new locations
             sc.remove()
-            sc = ax.scatter(yi, xi, c=temptimes, s=0.75, cmap='coolwarm', norm=cm)
+            sc = ax.scatter(yi, xi, c=temptimes, s=0.75, cmap='coolwarm',
+                            norm=cm)
             # cbar.remove()
             # cbar = plt.colorbar(sc, cax=cax)
             # cbar.set_label('Particle Travel Times [s]')
@@ -422,7 +432,7 @@ def get_state(walk_data, iteration=-1):
             iter_exceeds_warning += 1
 
     if iter_exceeds_warning > 0:
-        print('Note: %s particles have not reached %s iterations' % \
+        print('Note: %s particles have not reached %s iterations' %
               (iter_exceeds_warning, iteration))
 
     return xinds, yinds, times
@@ -756,7 +766,7 @@ def draw_travel_path(grid, walk_data,
 
     plt.figure(figsize=(7, 4), dpi=300)
     ax = plt.gca()
-    im = ax.imshow(grid, cmap='bone', alpha=0.9)
+    ax.imshow(grid, cmap='bone', alpha=0.9)
     ax.set_title('Particle Paths')
 
     paths = []  # Place to store particle paths
@@ -921,9 +931,9 @@ def snake_plots(grid,
         chunks = list(range(ii, ii-tail_length*interval, -1*interval))
 
         # Create figure for this step
-        fig = plt.figure(figsize=(7, 4), dpi=300)
+        plt.figure(figsize=(7, 4), dpi=300)
         ax = plt.gca()
-        im = ax.imshow(grid, cmap='bone', alpha=0.9)
+        ax.imshow(grid, cmap='bone', alpha=0.9)
 
         # Loop through particles
         for jj in list(range(len(walk_data['xinds']))):
@@ -1047,9 +1057,9 @@ def show_nourishment_area(visit_freq, grid=None, walk_data=None,
     ax.set_facecolor('k')  # Set facecolor black
     if grid is not None:
         # Grid background intentionally dark:
-        im = ax.imshow(grid, cmap='gist_gray', vmax=np.max(grid)*3)
+        ax.imshow(grid, cmap='gist_gray', vmax=np.max(grid)*3)
     # Show nourishment area
-    nr = ax.imshow(colors)
+    ax.imshow(colors)
     plt.title('Nourishment Area')
     if (show_seed) & (walk_data is not None):
         ax.scatter(walk_data['yinds'][0][0], walk_data['xinds'][0][0],
@@ -1133,9 +1143,9 @@ def show_nourishment_time(mean_times, grid=None, walk_data=None,
     ax.set_facecolor('k')  # Set facecolor black
     if grid is not None:
         # Grid background intentionally dark:
-        im = ax.imshow(grid, cmap='gist_gray', vmax=np.max(grid)*3)
+        ax.imshow(grid, cmap='gist_gray', vmax=np.max(grid)*3)
     # Show nourishment times
-    nt = ax.imshow(colors)
+    ax.imshow(colors)
     plt.title('Nourishment Times')
 
     # Optionally plot colorbar
